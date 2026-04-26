@@ -2,19 +2,20 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { Dashboard } from './pages/dashboard';
 import { Stock } from './pages/stock';
+import { Reports } from './pages/reports';
+import { Settings } from './pages/settings';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Redireciona / para /dashboard */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        
-        {/* Rotas com layout */}
+
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/stock" element={<Stock />} />
-          {/* Adicione mais rotas conforme precisar */}
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>
