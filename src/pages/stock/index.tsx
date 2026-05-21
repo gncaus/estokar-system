@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import {
   Plus, Trash2, ShoppingCart, Package, AlertTriangle,
-  X, Check, ChevronsUpDown, Banknote, CreditCard, QrCode,
+  X, Check, ChevronsUpDown, Banknote, CreditCard, QrCode, History,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,12 +12,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction }
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Field, FieldDescription, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 import { useAppStore } from '@/store/appStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { cn } from '@/lib/utils'
 
-const BASE_URL = 'http://localhost:3001'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 const ITEMS_URL = `${BASE_URL}/items`
 const SALES_URL = `${BASE_URL}/sales`
 
@@ -30,6 +31,16 @@ type Item = {
 }
 
 type PaymentMethod = 'pix' | 'card' | 'cash'
+
+type Movement = {
+  id: number
+  itemId: number
+  type: 'entrada' | 'saida' | 'ajuste'
+  quantity: number
+  reason: string
+  balanceAfter: number
+  createdAt: string
+}
 
 type SaleRow = {
   key: string
@@ -62,6 +73,11 @@ export function Stock() {
   // Tabela
   const [entryValues, setEntryValues] = useState<Record<number, string>>({})
   const [search, setSearch] = useState('')
+
+  // Histórico de movimentações
+  const [historyItem, setHistoryItem] = useState<Item | null>(null)
+  const [movements, setMovements] = useState<Movement[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   // Venda
   const [saleRows, setSaleRows] = useState<SaleRow[]>([newRow()])
@@ -102,6 +118,18 @@ export function Stock() {
   const handleDelete = async (id: number) => {
     await axios.delete(`${ITEMS_URL}/${id}`)
     setField('stockList', stockList.filter((i) => i.id !== id))
+  }
+
+  const openHistory = async (item: Item) => {
+    setHistoryItem(item)
+    setMovements([])
+    setHistoryLoading(true)
+    try {
+      const res = await axios.get<Movement[]>(`${ITEMS_URL}/${item.id}/movements`)
+      setMovements(res.data)
+    } finally {
+      setHistoryLoading(false)
+    }
   }
 
   const updateSaleRow = (key: string, patch: Partial<SaleRow>) =>
@@ -466,6 +494,14 @@ export function Stock() {
                           </Button>
                           <Button
                             size="icon-sm"
+                            variant="outline"
+                            onClick={() => openHistory(item)}
+                            title="Ver histórico de movimentações"
+                          >
+                            <History size={14} />
+                          </Button>
+                          <Button
+                            size="icon-sm"
                             variant="destructive"
                             onClick={() => handleDelete(item.id)}
                             title="Excluir peça do catálogo"
@@ -482,6 +518,63 @@ export function Stock() {
           )}
         </Card>
       </div>
+      {/* Histórico de movimentações */}
+      <Dialog open={historyItem !== null} onOpenChange={(open) => { if (!open) setHistoryItem(null) }}>
+        <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Histórico — {historyItem?.name}</DialogTitle>
+            <DialogDescription>Movimentações registradas para esta peça</DialogDescription>
+          </DialogHeader>
+
+          {historyLoading ? (
+            <p className="text-center text-muted-foreground py-8">Carregando...</p>
+          ) : movements.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Nenhuma movimentação registrada</p>
+          ) : (
+            <div className="overflow-y-auto flex flex-col gap-2 pr-1">
+              {movements.map((m) => (
+                <div
+                  key={m.id}
+                  className="flex items-start gap-3 rounded-md border border-border p-3 text-sm"
+                >
+                  <span
+                    className={cn(
+                      'mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium border',
+                      m.type === 'entrada'
+                        ? 'text-green-400 border-green-400/30 bg-green-400/10'
+                        : m.type === 'saida'
+                          ? 'text-red-400 border-red-400/30 bg-red-400/10'
+                          : 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10',
+                    )}
+                  >
+                    {m.type === 'entrada' ? 'Entrada' : m.type === 'saida' ? 'Saída' : 'Ajuste'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{m.reason}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {new Intl.DateTimeFormat('pt-BR', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit',
+                      }).format(new Date(m.createdAt))}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p
+                      className={cn(
+                        'font-semibold',
+                        m.quantity > 0 ? 'text-green-400' : 'text-red-400',
+                      )}
+                    >
+                      {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                    </p>
+                    <p className="text-xs text-muted-foreground">saldo: {m.balanceAfter}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
