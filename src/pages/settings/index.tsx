@@ -3,6 +3,7 @@ import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useSettingsStore } from '@/store/settingsStore'
 
 export function Settings() {
@@ -24,16 +25,15 @@ export function Settings() {
   return (
     <div className="max-w-2xl space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
+        <h1 className="text-3xl font-bold">Configurações</h1>
         <p className="text-muted-foreground mt-1">Preferências gerais do sistema</p>
       </div>
 
-      {/* Sistema */}
-      <section className="bg-card border border-border rounded-lg">
-        <div className="px-6 py-4 border-b border-border">
-          <h2 className="font-semibold text-foreground">Sistema</h2>
-        </div>
-        <div className="px-6 py-5 space-y-5">
+      <Card className="gap-0 py-0">
+        <CardHeader className="border-b py-4">
+          <CardTitle>Sistema</CardTitle>
+        </CardHeader>
+        <CardContent className="py-6 space-y-5">
           <Field>
             <FieldLabel htmlFor="companyName">Nome da empresa</FieldLabel>
             <FieldDescription className="text-muted-foreground">
@@ -47,15 +47,14 @@ export function Settings() {
               className="mt-1.5"
             />
           </Field>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      {/* Estoque */}
-      <section className="bg-card border border-border rounded-lg">
-        <div className="px-6 py-4 border-b border-border">
-          <h2 className="font-semibold text-foreground">Estoque</h2>
-        </div>
-        <div className="px-6 py-5 space-y-5">
+      <Card className="gap-0 py-0">
+        <CardHeader className="border-b py-4">
+          <CardTitle>Estoque</CardTitle>
+        </CardHeader>
+        <CardContent className="py-6 space-y-5">
           <Field>
             <FieldLabel htmlFor="threshold">Limiar de estoque baixo</FieldLabel>
             <FieldDescription className="text-muted-foreground">
@@ -75,22 +74,22 @@ export function Settings() {
               <span className="text-sm text-muted-foreground">unidades</span>
             </div>
           </Field>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      {/* Sobre */}
-      <section className="bg-card border border-border rounded-lg">
-        <div className="px-6 py-4 border-b border-border">
-          <h2 className="font-semibold text-foreground">Sobre</h2>
-        </div>
-        <div className="px-6 py-5 space-y-2 text-sm">
-          <Row label="Sistema" value="Estokar" />
-          <Row label="Versão" value="1.0.0" />
-          <Row label="Backend" value="http://localhost:3001" />
-        </div>
-      </section>
+      <Card className="gap-0 py-0">
+        <CardHeader className="border-b py-4">
+          <CardTitle>Sobre</CardTitle>
+        </CardHeader>
+        <CardContent className="py-4">
+          <div className="text-sm space-y-0">
+            <Row label="Sistema" value="Estokar" />
+            <Row label="Versão" value="1.0.0" />
+            <Row label="Backend" value="http://localhost:3001" />
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Salvar */}
       <div className="flex items-center gap-3">
         <Button onClick={handleSave} disabled={!changed && !saved}>
           Salvar alterações
@@ -108,9 +107,9 @@ export function Settings() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between py-1.5 border-b border-border last:border-0">
+    <div className="flex justify-between py-2.5 border-b border-border last:border-0">
       <span className="text-muted-foreground">{label}</span>
-      <span className="text-foreground font-medium">{value}</span>
+      <span className="font-medium">{value}</span>
     </div>
   )
 }
