@@ -85,7 +85,7 @@ export function Settings() {
           <div className="text-sm space-y-0">
             <Row label="Sistema" value="Estokar" />
             <Row label="Versão" value="1.0.0" />
-            <Row label="Backend" value="http://localhost:3001" />
+            <Row label="Backend" value={import.meta.env.VITE_API_URL || 'http://localhost:3001'} />
           </div>
         </CardContent>
       </Card>

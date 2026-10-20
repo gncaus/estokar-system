@@ -87,7 +87,7 @@ export function Stock() {
 
   useEffect(() => {
     axios.get<Item[]>(ITEMS_URL).then((res) => setField('stockList', res.data))
-  }, [])
+  }, [setField])
 
   const handleRegister = async () => {
     if (!name.trim()) return
